@@ -1,0 +1,2166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BARANGAY CENTRAL AIR QUALITY MONITORING</title>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary: #FF8C00;
+      --primary-gradient: linear-gradient(135deg, #FF8C00 0%, #FFA500 100%);
+      --secondary: #8392ab;
+      --success: #2dce89;
+      --success-gradient: linear-gradient(135deg, #2dce89 0%, #1a9c5f 100%);
+      --warning: #FF8C00;
+      --warning-gradient: linear-gradient(135deg, #FF8C00 0%, #FF4500 100%);
+      --danger: #f5365c;
+      --danger-gradient: linear-gradient(135deg, #f5365c 0%, #c0392b 100%);
+      --info: #11cdef;
+      --light: #f8f9fa;
+      --dark: #212529;
+      --sidebar-bg: linear-gradient(180deg, #7c2d0f 0%, #ea580c 100%);
+      --card-bg: #ffffff;
+      --body-bg: #f7fafc;
+      --text-primary: #32325d;
+      --text-secondary: #525f7f;
+      --border-radius: 16px;
+      --box-shadow: 0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
+      --transition: all 0.3s ease;
+    }
+
+    .dark-mode {
+      --card-bg: #2d3748;
+      --body-bg: #1a202c;
+      --text-primary: #e2e8f0;
+      --text-secondary: #a0aec0;
+      --box-shadow: 0 7px 14px rgba(0, 0, 0, 0.2), 0 3px 6px rgba(0, 0, 0, 0.25);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--body-bg);
+      color: var(--text-primary);
+      display: flex;
+      min-height: 100vh;
+      transition: var(--transition);
+    }
+
+    /* Side navigation bar */
+    .sidenav {
+      width: 280px;
+      background: var(--sidebar-bg);
+      padding: 25px 0;
+      color: white;
+      box-shadow: var(--box-shadow);
+      position: fixed;
+      height: 100%;
+      z-index: 100;
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidenav-header {
+      padding: 0 25px 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 20px;
+    }
+
+    .sidenav-header h2 {
+      font-weight: 600;
+      font-size: 1.5rem;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .sidenav-links {
+      padding: 0 15px;
+      flex: 1;
+    }
+
+    .sidenav a {
+      display: flex;
+      align-items: center;
+      padding: 14px 20px;
+      text-decoration: none;
+      color: rgba(255, 255, 255, 0.8);
+      border-radius: 8px;
+      margin: 8px 0;
+      transition: var(--transition);
+    }
+
+    .sidenav a i {
+      margin-right: 12px;
+      font-size: 18px;
+      width: 24px;
+      text-align: center;
+    }
+
+    .sidenav a:hover, .sidenav a.active {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      transform: translateX(5px);
+    }
+
+    .sidenav a.active {
+      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+    }
+
+    .sidenav-footer {
+      padding: 15px 25px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      margin-top: auto;
+    }
+
+    .theme-switch {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      position: relative;
+      z-index: 1000;
+    }
+
+    .theme-switch span {
+      font-size: 0.9rem;
+      color: white;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 24px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 24px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--primary);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(26px);
+    }
+
+    /* Main content area */
+    .main-content {
+      flex: 1;
+      margin-left: 280px;
+      padding: 30px;
+      transition: var(--transition);
+    }
+
+    .dashboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .dashboard-title h1 {
+      font-weight: 600;
+      color: var(--text-primary);
+      font-size: 1.8rem;
+      margin-bottom: 5px;
+    }
+
+    .dashboard-title p {
+      color: var(--text-secondary);
+      font-size: 1rem;
+    }
+
+    .header-controls {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      padding: 25px;
+      margin-bottom: 25px;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card:hover {
+      box-shadow: 0 10px 20px rgba(50, 50, 93, 0.15), 0 5px 10px rgba(0, 0, 0, 0.1);
+      transform: translateY(-5px);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .card-title {
+      font-weight: 600;
+      font-size: 1.2rem;
+      color: var(--text-primary);
+    }
+
+    /* Charts container */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 25px;
+      margin-bottom: 25px;
+    }
+
+    .chart-container {
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      padding: 20px;
+      box-shadow: var(--box-shadow);
+    }
+
+    canvas {
+      width: 100% !important;
+      height: 250px !important;
+    }
+
+    /* Health recommendations */
+    .recommendations {
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      padding: 20px;
+      box-shadow: var(--box-shadow);
+      margin-bottom: 25px;
+    }
+
+    .recommendations-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .recommendations-header i {
+      color: var(--info);
+      font-size: 1.5rem;
+    }
+
+    .recommendations-list {
+      list-style-type: none;
+    }
+
+    .recommendations-list li {
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .recommendations-list li:last-child {
+      border-bottom: none;
+    }
+
+    .recommendations-list li i {
+      color: var(--success);
+      margin-top: 4px;
+    }
+
+    /* History controls */
+    .history-controls {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .flatpickr-input {
+      padding: 12px 16px;
+      border: 1px solid #e9ecef;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      background: var(--card-bg);
+      color: var(--text-primary);
+      min-width: 200px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn i {
+      font-size: 1.1rem;
+    }
+
+    .btn-primary {
+      background: var(--primary-gradient);
+      color: white;
+      box-shadow: 0 4px 6px rgba(255, 140, 0, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 7px 14px rgba(255, 140, 0, 0.4);
+    }
+
+    .btn-success {
+      background: var(--success-gradient);
+      color: white;
+      box-shadow: 0 4px 6px rgba(45, 206, 137, 0.3);
+    }
+
+    .btn-success:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 7px 14px rgba(45, 206, 137, 0.4);
+    }
+
+    /* Table */
+    .table-responsive {
+      overflow: auto;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--card-bg);
+    }
+
+    th, td {
+      padding: 16px 20px;
+      text-align: left;
+      border-bottom: 1px solid #e9ecef;
+    }
+
+    th {
+      background: var(--primary-gradient);
+      color: white;
+      font-weight: 500;
+      position: sticky;
+      top: 0;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover {
+      background-color: rgba(255, 140, 0, 0.03);
+    }
+
+    /* Overview Section Specific Styles */
+    .overview-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 25px;
+      margin-bottom: 25px;
+    }
+    
+    @media (max-width: 1200px) {
+      .overview-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    /* IMPROVED MAIN METRIC CARD */
+    .main-metric-card {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      align-items: center;
+      min-height: 400px;
+      padding: 30px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    /* Background with GIF and image */
+    .main-metric-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background:
+        url('images/cloud.gif'),
+        url('images/arteche.jpg');
+      background-size: cover, cover;
+      background-position: center, center;
+      background-repeat: no-repeat, no-repeat;
+      opacity: 0.4;
+      filter: blur(3px);
+      z-index: 1;
+    }
+
+    /* Dark overlay for better text contrast */
+    .main-metric-card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6));
+      z-index: 2;
+    }
+
+    .main-metric-card > * {
+      position: relative;
+      z-index: 3;
+      color: #fff;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+    }
+    
+    /* Left side - AQI visualization */
+    .aqi-visualization {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    /* Right side - Details and stats */
+    .aqi-details {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    /* Improved circular progress */
+    .circular-progress {
+      position: relative;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: conic-gradient(#ddd 0deg, #eee 360deg);
+      margin: 0 auto 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .circular-progress::before {
+      content: '';
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(5px);
+    }
+
+    .circular-progress span {
+      position: relative;
+      font-size: 3.5rem;
+      font-weight: 700;
+      z-index: 1;
+    }
+    
+    /* Dust level indicator */
+    .dust-level {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 20px 0;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      font-size: 1.1rem;
+      backdrop-filter: blur(5px);
+    }
+
+    .dust-level i {
+      margin-right: 10px;
+      color: #8b5cf6;
+    }
+
+    .dust-level-value {
+      font-weight: 600;
+      margin-left: 5px;
+    }
+    
+    .metric-stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      margin-top: 25px;
+    }
+    
+    .stat-item {
+      text-align: center;
+      padding: 15px 10px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      backdrop-filter: blur(5px);
+    }
+    
+    .stat-value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+    
+    .stat-label {
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.9);
+    }
+    
+    /* Improved AQI legend */
+    .aqi-legend {
+      margin: 25px 0;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      backdrop-filter: blur(5px);
+      width: 100%;
+    }
+
+    .aqi-scale {
+      height: 20px;
+      background: linear-gradient(90deg, #2dce89 0%, #FF8C00 50%, #f5365c 100%);
+      border-radius: 10px;
+      position: relative;
+      margin-bottom: 10px;
+    }
+
+    .aqi-marker {
+      position: absolute;
+      top: -5px;
+      width: 6px;
+      height: 30px;
+      background: white;
+      border-radius: 3px;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+      transform: translateX(-3px);
+      z-index: 2;
+    }
+
+    .aqi-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 5px;
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .aqi-status {
+      text-align: center;
+      margin-top: 15px;
+      font-weight: 600;
+      font-size: 1.3rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 10px;
+      border-radius: 8px;
+    }
+
+    .aqi-status i {
+      font-size: 1.5rem;
+    }
+
+    .status-good {
+      color: #2dce89;
+      background: rgba(45, 206, 137, 0.2);
+    }
+
+    .status-moderate {
+      color: #FF8C00;
+      background: rgba(255, 140, 0, 0.2);
+    }
+
+    .status-polluted {
+      color: #f5365c;
+      background: rgba(245, 54, 92, 0.2);
+    }
+    
+    /* Title styling */
+    .aqi-title {
+      font-size: 1.8rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+    
+    .recommendations-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 25px;
+    }
+    
+    @media (max-width: 992px) {
+      .recommendations-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .index-scale {
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      padding: 20px;
+      box-shadow: var(--box-shadow);
+    }
+    
+    .scale-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 15px;
+      margin: 8px 0;
+      border-radius: 8px;
+      color: white;
+      font-weight: 500;
+    }
+    
+    .scale-good {
+      background: var(--success-gradient);
+    }
+    
+    .scale-moderate {
+      background: var(--warning-gradient);
+    }
+    
+    .scale-polluted {
+      background: var(--danger-gradient);
+    }
+
+    /* Responsive adjustments for main metric card */
+    @media (max-width: 992px) {
+      .main-metric-card {
+        grid-template-columns: 1fr;
+      }
+      
+      .aqi-visualization, .aqi-details {
+        padding: 15px;
+      }
+      
+      .circular-progress {
+        width: 200px;
+        height: 200px;
+      }
+      
+      .circular-progress::before {
+        width: 180px;
+        height: 180px;
+      }
+      
+      .circular-progress span {
+        font-size: 3rem;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .metric-stats {
+        grid-template-columns: 1fr;
+      }
+      
+      .circular-progress {
+        width: 180px;
+        height: 180px;
+      }
+      
+      .circular-progress::before {
+        width: 160px;
+        height: 160px;
+      }
+      
+      .circular-progress span {
+        font-size: 2.5rem;
+      }
+      
+      .aqi-title {
+        font-size: 1.5rem;
+      }
+    }
+
+    /* Print styles */
+    @media print {
+      body, html {
+        width: 100%;
+        background: white;
+        font-size: 12pt;
+        color: black;
+        margin: 0;
+        padding: 0;
+      }
+
+      .sidenav, 
+      .btn, 
+      .history-controls,
+      .dashboard-title,
+      .card-header,
+      .header-controls,
+      .main-content > :not(#historySection) {
+        display: none !important;
+      }
+
+      .main-content {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+      }
+
+      #historySection {
+        display: block !important;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+
+      .card {
+        box-shadow: none;
+        border: none;
+        padding: 10px;
+        margin: 0;
+        width: 100%;
+        page-break-inside: avoid;
+      }
+
+      .table-responsive {
+        box-shadow: none;
+        width: 100%;
+      }
+
+      table {
+        width: 100%;
+        font-size: 10pt;
+        page-break-inside: auto;
+      }
+
+      th {
+        background: #ddd !important;
+        color: black !important;
+      }
+
+      tr {
+        page-break-inside: avoid;
+        page-break-after: auto;
+      }
+
+      /* Hide GIF background when printing */
+      .main-metric-card::before {
+        display: none;
+      }
+
+      /* Show all records when printing */
+      #historyTableBody tr {
+        display: table-row !important;
+      }
+
+      /* Hide pagination when printing */
+      .pagination {
+        display: none !important;
+      }
+    }
+
+    /* Responsive styles */
+    @media (max-width: 1200px) {
+      .charts-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 992px) {
+      .sidenav {
+        width: 80px;
+        padding: 20px 0;
+      }
+      
+      .sidenav-header h2,
+      .sidenav a span,
+      .sidenav-footer span {
+        display: none;
+      }
+      
+      .sidenav a {
+        justify-content: center;
+        padding: 16px;
+      }
+      
+      .sidenav a i {
+        margin-right: 0;
+        font-size: 20px;
+      }
+      
+      .main-content {
+        margin-left: 80px;
+        padding: 20px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .sidenav {
+        width: 0;
+        overflow: hidden;
+        z-index: 1000;
+      }
+      
+      .main-content {
+        margin-left: 0;
+        padding: 15px;
+      }
+      
+      .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+      }
+      
+      .header-controls {
+        width: 100%;
+        justify-content: space-between;
+      }
+      
+      .history-controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .flatpickr-input {
+        min-width: unset;
+      }
+    }
+
+    /* Animation for real-time updates */
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+      100% { transform: scale(1); }
+    }
+    
+    .value-updated {
+      animation: pulse 0.5s ease;
+    }
+
+    /* Pagination controls */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .pagination-btn {
+      padding: 8px 16px;
+      background: var(--primary-gradient);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .pagination-btn:disabled {
+      background: var(--secondary);
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .page-info {
+      margin: 0 15px;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    /* Notification Styles */
+    .notification-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: 400px;
+    }
+
+    .notification {
+      padding: 16px 20px;
+      border-radius: 12px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      animation: slideIn 0.3s ease-out;
+      transform-origin: top right;
+      backdrop-filter: blur(10px);
+      border-left: 4px solid;
+    }
+
+    .notification.polluted {
+      background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+      color: white;
+      border-left-color: #c0392b;
+    }
+
+    .notification.improved {
+      background: linear-gradient(135deg, #2dce89, #1a9c5f);
+      color: white;
+      border-left-color: #1a9c5f;
+    }
+
+    .notification.warning {
+      background: linear-gradient(135deg, #FF8C00, #FF4500);
+      color: white;
+      border-left-color: #FF4500;
+    }
+
+    .notification-icon {
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+
+    .notification-content {
+      flex: 1;
+    }
+
+    .notification-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .notification-message {
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+
+    .notification-close {
+      background: none;
+      border: none;
+      color: inherit;
+      cursor: pointer;
+      font-size: 1.2rem;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+      padding: 4px;
+      border-radius: 4px;
+    }
+
+    .notification-close:hover {
+      opacity: 1;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideOut {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+    }
+
+    .notification.hiding {
+      animation: slideOut 0.3s ease-in forwards;
+    }
+
+    /* Alert badge for header */
+    .alert-badge {
+      background: var(--danger-gradient);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      animation: pulse 2s infinite;
+    }
+
+    /* Sound notification indicator */
+    .sound-toggle {
+      background: var(--info);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .sound-toggle:hover {
+      transform: scale(1.1);
+    }
+
+    .sound-toggle.muted {
+      background: var(--secondary);
+    }
+  </style>
+</head>
+<body>
+  <div class="sidenav" id="sidenav">
+    <div class="sidenav-header">
+      <h2><i class="fas fa-wind"></i> BRGY CENTRAL</h2>
+    </div>
+    <div class="sidenav-links">
+      <a href="#overview" id="overviewLink" class="active">
+        <i class="fas fa-chart-line"></i>
+        <span>Overview</span>
+      </a>
+      <a href="#history" id="historyLink">
+        <i class="fas fa-history"></i>
+        <span>History</span>
+      </a>
+      <a href="#" id="logoutLink">
+        <i class="fas fa-sign-out-alt"></i>
+        <span>Logout</span>
+      </a>
+    </div>
+    <div class="sidenav-footer">
+      <div class="theme-switch">
+        <span>Dark Mode</span>
+        <label class="switch">
+          <input type="checkbox" id="themeSwitch">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <div class="dashboard-header">
+      <div class="dashboard-title">
+        <h1>Real-Time Air Quality - Barangay Central</h1>
+        <p>Monitor air quality metrics in Barangay Central in real-time</p>
+      </div>
+      <div class="header-controls">
+        <!-- Sound toggle button -->
+        <button class="sound-toggle" id="soundToggle" title="Toggle notification sound">
+          <i class="fas fa-volume-up"></i>
+        </button>
+        <!-- Alert badge (shown when air quality is polluted) -->
+        <div class="alert-badge" id="alertBadge" style="display: none;">
+          <i class="fas fa-exclamation-triangle"></i>
+          <span>POOR AIR QUALITY</span>
+        </div>
+        <!-- Print button will be shown only in History section via JavaScript -->
+      </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div class="notification-container" id="notificationContainer"></div>
+
+    <!-- Overview Section -->
+    <div id="overviewSection">
+      <div class="overview-grid">
+        <!-- Main Air Quality Card - Improved Layout -->
+        <div class="card main-metric-card">
+          <!-- Left side: AQI Visualization -->
+          <div class="aqi-visualization">
+            <div class="circular-progress" id="progressCircle">
+              <span id="progressValue">0</span>
+            </div>
+            
+            <!-- AQI Line Legend -->
+            <div class="aqi-legend">
+              <div class="aqi-scale" id="aqiScale">
+                <div class="aqi-marker" id="aqiMarker"></div>
+              </div>
+              <div class="aqi-labels">
+                <span>0 (Good)</span>
+                <span>50</span>
+                <span>100</span>
+                <span>150</span>
+                <span>200</span>
+                <span>300+ (Hazardous)</span>
+              </div>
+              <div class="aqi-status" id="aqiStatus">
+                <i class="fas fa-spinner fa-spin"></i>
+                <span>Loading air quality data...</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Right side: AQI Details -->
+          <div class="aqi-details">
+            <h3 class="aqi-title">BARANGAY CENTRAL AIR QUALITY INDEX</h3>
+            
+            <div class="dust-level">
+              <i class="fas fa-dust"></i>
+              Dust Level: <span id="dustLevelValue" class="dust-level-value">0.000</span> mg/m³
+            </div>
+            
+            <div class="metric-stats">
+              <div class="stat-item">
+                <div class="stat-value" id="minAQI">0</div>
+                <div class="stat-label">Min Today</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value" id="maxAQI">0</div>
+                <div class="stat-label">Max Today</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="chart-container">
+          <div class="card-header">
+            <h3 class="card-title">Air Quality Trend - Barangay Central</h3>
+            <div class="time-filter">
+              <select id="airQualityTimeFilter">
+                <option value="1h">Last 1 hour</option>
+                <option value="6h" selected>Last 6 hours</option>
+                <option value="12h">Last 12 hours</option>
+                <option value="24h">Last 24 hours</option>
+              </select>
+            </div>
+          </div>
+          <canvas id="airChart"></canvas>
+        </div>
+        
+        <div class="chart-container">
+          <div class="card-header">
+            <h3 class="card-title">Dust Level Trend - Barangay Central</h3>
+            <div class="time-filter">
+              <select id="dustTimeFilter">
+                <option value="1h">Last 1 hour</option>
+                <option value="6h" selected>Last 6 hours</option>
+                <option value="12h">Last 12 hours</option>
+                <option value="24h">Last 24 hours</option>
+              </select>
+            </div>
+          </div>
+          <canvas id="dustChart"></canvas>
+        </div>
+      </div>
+
+      <div class="recommendations-grid">
+        <div class="recommendations">
+          <div class="recommendations-header">
+            <i class="fas fa-heartbeat"></i>
+            <h3>Health Recommendations</h3>
+          </div>
+          <ul class="recommendations-list" id="recommendationsList">
+            <li>
+              <i class="fas fa-check-circle"></i>
+              <div>
+                <strong>Air quality is good</strong>
+                <p>No health implications. Enjoy outdoor activities.</p>
+              </div>
+            </li>
+            <li>
+              <i class="fas fa-check-circle"></i>
+              <div>
+                <strong>Ventilation</strong>
+                <p>Keep windows open to allow fresh air circulation.</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+        
+        <div class="index-scale">
+          <div class="recommendations-header">
+            <i class="fas fa-info-circle"></i>
+            <h3>AQI Scale</h3>
+          </div>
+          <div class="scale-item scale-good">
+            <span>0 - 50</span>
+            <span>Good</span>
+          </div>
+          <div class="scale-item scale-moderate">
+            <span>51 - 100</span>
+            <span>Moderate</span>
+          </div>
+          <div class="scale-item scale-polluted">
+            <span>101+</span>
+            <span>Polluted</span>
+          </div>
+          <p style="margin-top: 15px; font-size: 0.9rem; color: var(--text-secondary);">
+            The Air Quality Index (AQI) is an indicator of overall air quality based on measurements of specific pollutants.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- History Section -->
+    <div id="historySection" style="display: none;">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Historical Data - Barangay Central</h3>
+          <button id="printHistoryBtn" class="btn btn-success">
+            <i class="fas fa-print"></i> Print Report
+          </button>
+        </div>
+        <div class="history-controls">
+          <label for="datePicker"><strong>Select Date Range:</strong></label>
+          <input type="text" id="dateRangePicker" placeholder="Select date range" class="flatpickr-input">
+          <select id="dataInterval">
+            <option value="hourly">Hourly Data</option>
+            <option value="daily" selected>Daily Averages</option>
+          </select>
+          <button onclick="fetchHistoryByDate()" class="btn btn-primary">
+            <i class="fas fa-search"></i> View Data
+          </button>
+        </div>
+        
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Date and Time</th>
+                <th>Air Quality Status</th>
+                <th>Dust Level (mg/m³)</th>
+              </tr>
+            </thead>
+            <tbody id="historyTableBody">
+              <tr>
+                <td colspan="3" style="text-align: center;">Select a date range to view historical data</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- Pagination controls -->
+        <div class="pagination" id="paginationControls" style="display: none;">
+          <button class="pagination-btn" id="prevPageBtn" onclick="changePage(-1)">Previous</button>
+          <span class="page-info" id="pageInfo">Page 1 of 1</span>
+          <button class="pagination-btn" id="nextPageBtn" onclick="changePage(1)">Next</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Firebase configuration and initialization
+    const firebaseConfig = {
+  apiKey: "AIzaSyD-q_sjDr815xyKHnw4qupJoFeCa89rsTg",
+  authDomain: "air-quality-monitoring-s-d6123.firebaseapp.com",
+  databaseURL: "https://air-quality-monitoring-s-d6123-default-rtdb.firebaseio.com",
+  projectId: "air-quality-monitoring-s-d6123",
+  storageBucket: "air-quality-monitoring-s-d6123.firebasestorage.app",
+  messagingSenderId: "410958753987",
+  appId: "1:410958753987:web:546a09493fae6d8623f276",
+  measurementId: "G-MQZTPTJXWP"
+};
+
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    
+    // Updated Firebase references for Barangay Central
+    const airQualityRef = db.ref('barangays/central/sensors/airQuality');
+    const dustLevelRef = db.ref('barangays/central/sensors/dustLevel');
+    const historyRef = db.ref('barangays/central/history');
+
+    // Utility state
+    let historicalData = [];
+    const addedEntries = new Set();
+    let lastStatus = null;
+    let lastDustLevel = null;
+    let lastRenderedStatus = null;
+
+    let sensorBuffer = {
+      airQuality: null,
+      dustLevel: null,
+      timestamp: null
+    };
+
+    // Notification state
+    let lastNotificationStatus = null;
+    let notificationSoundEnabled = true;
+    let alertAudio = null;
+
+    // Initialize date picker
+    flatpickr("#dateRangePicker", {
+      mode: "range",
+      dateFormat: "Y-m-d",
+      maxDate: "today"
+    });
+
+    let updateTimeout = null;
+
+    // Utility functions
+    function isSameDate(d1, d2) {
+      return d1.getUTCFullYear() === d2.getUTCFullYear() &&
+             d1.getUTCMonth() === d2.getUTCMonth() &&
+             d1.getUTCDate() === d2.getUTCDate();
+    }
+
+    function formatDateTime(timestamp) {
+      return new Date(timestamp).toLocaleString();
+    }
+
+    function getTodayUTC() {
+      const now = new Date();
+      return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    }
+
+    const todayUTC = getTodayUTC();
+
+    // Pagination variables
+    let currentPage = 1;
+    const entriesPerPage = 10;
+    let filteredHistoryData = [];
+
+    // DOM Elements
+    const overviewLink = document.getElementById('overviewLink');
+    const historyLink = document.getElementById('historyLink');
+    const logoutLink = document.getElementById('logoutLink');
+    const printHistoryBtn = document.getElementById('printHistoryBtn');
+    const overviewSection = document.getElementById('overviewSection');
+    const historySection = document.getElementById('historySection');
+    const themeSwitch = document.getElementById('themeSwitch');
+    const sidenav = document.getElementById('sidenav');
+    const paginationControls = document.getElementById('paginationControls');
+    const prevPageBtn = document.getElementById('prevPageBtn');
+    const nextPageBtn = document.getElementById('nextPageBtn');
+    const pageInfo = document.getElementById('pageInfo');
+    const notificationContainer = document.getElementById('notificationContainer');
+    const soundToggle = document.getElementById('soundToggle');
+    const alertBadge = document.getElementById('alertBadge');
+
+    // Initialize notification sound
+    function initializeNotificationSound() {
+      alertAudio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA');
+      // Create a simple beep sound
+      const context = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = context.createOscillator();
+      const gainNode = context.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(context.destination);
+      
+      oscillator.type = 'sine';
+      oscillator.frequency.value = 800;
+      gainNode.gain.value = 0.5;
+      
+      oscillator.start();
+      gainNode.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.5);
+      oscillator.stop(context.currentTime + 0.5);
+    }
+
+    // Play notification sound
+    function playNotificationSound() {
+      if (notificationSoundEnabled && alertAudio) {
+        alertAudio.play().catch(e => console.log('Audio play failed:', e));
+      }
+    }
+
+    // Toggle notification sound
+    soundToggle.addEventListener('click', function() {
+      notificationSoundEnabled = !notificationSoundEnabled;
+      if (notificationSoundEnabled) {
+        soundToggle.innerHTML = '<i class="fas fa-volume-up"></i>';
+        soundToggle.classList.remove('muted');
+      } else {
+        soundToggle.innerHTML = '<i class="fas fa-volume-mute"></i>';
+        soundToggle.classList.add('muted');
+      }
+    });
+
+    // Show notification
+    function showNotification(type, title, message, duration = 5000) {
+      const notification = document.createElement('div');
+      notification.className = `notification ${type}`;
+      
+      let icon = 'fas fa-info-circle';
+      if (type === 'polluted') icon = 'fas fa-exclamation-triangle';
+      if (type === 'improved') icon = 'fas fa-check-circle';
+      if (type === 'warning') icon = 'fas fa-exclamation-circle';
+      
+      notification.innerHTML = `
+        <div class="notification-icon">
+          <i class="${icon}"></i>
+        </div>
+        <div class="notification-content">
+          <div class="notification-title">${title}</div>
+          <div class="notification-message">${message}</div>
+        </div>
+        <button class="notification-close">
+          <i class="fas fa-times"></i>
+        </button>
+      `;
+      
+      notificationContainer.appendChild(notification);
+      
+      // Close button functionality
+      const closeBtn = notification.querySelector('.notification-close');
+      closeBtn.addEventListener('click', () => {
+        notification.classList.add('hiding');
+        setTimeout(() => {
+          if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+          }
+        }, 300);
+      });
+      
+      // Auto-remove after duration
+      if (duration > 0) {
+        setTimeout(() => {
+          if (notification.parentNode) {
+            notification.classList.add('hiding');
+            setTimeout(() => {
+              if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+              }
+            }, 300);
+          }
+        }, duration);
+      }
+      
+      return notification;
+    }
+
+    // Check and show pollution notification
+    function checkPollutionNotification(currentStatus, previousStatus, aqiValue) {
+      // Show alert badge if air quality is polluted
+      if (currentStatus === 'POLLUTED') {
+        alertBadge.style.display = 'flex';
+      } else {
+        alertBadge.style.display = 'none';
+      }
+      
+      // Only show notification if status has changed
+      if (currentStatus !== previousStatus) {
+        if (currentStatus === 'POLLUTED') {
+          showNotification(
+            'polluted', 
+            'Poor Air Quality Alert - Barangay Central!', 
+            `Air Quality Index is ${aqiValue}. Avoid outdoor activities and close windows.`,
+            8000
+          );
+          playNotificationSound();
+        } else if (currentStatus === 'MODERATE' && previousStatus === 'POLLUTED') {
+          showNotification(
+            'improved',
+            'Air Quality Improved - Barangay Central',
+            'Air quality has improved to moderate levels. Sensitive groups should still take precautions.',
+            5000
+          );
+        } else if (currentStatus === 'GOOD' && previousStatus === 'POLLUTED') {
+          showNotification(
+            'improved',
+            'Air Quality Restored - Barangay Central',
+            'Air quality is now good. You can resume normal outdoor activities.',
+            5000
+          );
+        } else if (currentStatus === 'MODERATE') {
+          showNotification(
+            'warning',
+            'Moderate Air Quality - Barangay Central',
+            'Air quality is moderate. Unusually sensitive people should consider reducing prolonged outdoor exertion.',
+            5000
+          );
+        }
+        
+        lastNotificationStatus = currentStatus;
+      }
+    }
+
+    // Navigation
+    overviewLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      setActiveNav(overviewLink);
+      overviewSection.style.display = 'block';
+      historySection.style.display = 'none';
+    });
+
+    historyLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      setActiveNav(historyLink);
+      overviewSection.style.display = 'none';
+      historySection.style.display = 'block';
+      renderHistory();
+    });
+
+    function setActiveNav(activeElement) {
+      const links = document.querySelectorAll('.sidenav a');
+      links.forEach(link => link.classList.remove('active'));
+      activeElement.classList.add('active');
+    }
+
+    // Print functionality for history data only
+    printHistoryBtn.addEventListener('click', function() {
+      window.print();
+    });
+
+    // Theme switcher
+    themeSwitch.addEventListener('change', function() {
+      if (this.checked) {
+        document.body.classList.add('dark-mode');
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.body.classList.remove('dark-mode');
+        localStorage.setItem('theme', 'light');
+      }
+    });
+
+    // Check for saved theme preference
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+      document.body.classList.add('dark-mode');
+      themeSwitch.checked = true;
+    }
+
+    // Logout functionality
+    logoutLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      firebase.auth().signOut().then(() => {
+        alert("Logged out successfully.");
+        window.location.href = "central_index.html";
+      }).catch((error) => {
+        console.error("Logout Error:", error);
+      });
+    });
+
+    // Add these variables to track min and max
+    let minAQI = localStorage.getItem('minAQI') ? parseInt(localStorage.getItem('minAQI')) : Infinity;
+    let maxAQI = localStorage.getItem('maxAQI') ? parseInt(localStorage.getItem('maxAQI')) : -Infinity;
+
+    // Update the stat elements on page load
+    document.getElementById('minAQI').textContent = minAQI !== Infinity ? Math.round(minAQI) : 0;
+    document.getElementById('maxAQI').textContent = maxAQI !== -Infinity ? Math.round(maxAQI) : 0;
+
+    // Update AQI line legend
+    function updateAQILegend(value) {
+      const marker = document.getElementById('aqiMarker');
+      const status = document.getElementById('aqiStatus');
+      
+      // Calculate position (0-500 scale, but visually cap at 300 for better UI)
+      const maxVisualValue = 300;
+      const position = Math.min(value, maxVisualValue) / maxVisualValue * 100;
+      marker.style.left = `${position}%`;
+      
+      // Update status text and color
+      let statusText, statusClass, icon;
+      
+      if (value < 50) {
+        statusText = 'GOOD';
+        statusClass = 'status-good';
+        icon = 'fas fa-smile';
+      } else if (value < 100) {
+        statusText = 'MODERATE';
+        statusClass = 'status-moderate';
+        icon = 'fas fa-meh';
+      } else {
+        statusText = 'POLLUTED';
+        statusClass = 'status-polluted';
+        icon = 'fas fa-frown';
+      }
+      
+      // Remove the number from the status display
+      status.innerHTML = `<i class="${icon}"></i> <span>${statusText}</span>`;
+      status.className = `aqi-status ${statusClass}`;
+    }
+
+    // Firebase data listeners
+    airQualityRef.on('value', (snapshot) => {
+      const value = snapshot.val();
+      if (value !== null) {
+        sensorBuffer.airQuality = value;
+        sensorBuffer.timestamp = new Date().toISOString();
+        
+        // Check for pollution notification
+        const currentStatus = value < 50 ? 'GOOD' : value < 100 ? 'MODERATE' : 'POLLUTED';
+        checkPollutionNotification(currentStatus, lastNotificationStatus, value);
+        
+        updateCircularProgress(value);
+        updateAQILegend(value);
+        updateChart(airChart, airData, value);
+        debounceSensorUpdate();
+      }
+    });
+
+    dustLevelRef.on('value', (snapshot) => {
+      const value = snapshot.val();
+      if (value !== null) {
+        sensorBuffer.dustLevel = value;
+        updateDustLevelDisplay(value);
+        updateChart(dustChart, dustData, value);
+        debounceSensorUpdate();
+      }
+    });
+
+    function updateDustLevelDisplay(value) {
+      const dustLevelElement = document.getElementById('dustLevelValue');
+      dustLevelElement.textContent = parseFloat(value).toFixed(5);
+      dustLevelElement.classList.add('value-updated');
+      setTimeout(() => {
+        dustLevelElement.classList.remove('value-updated');
+      }, 500);
+    }
+
+    // IMPROVED: Better debouncing and redundant entry handling
+    function debounceSensorUpdate() {
+      if (updateTimeout) clearTimeout(updateTimeout);
+      updateTimeout = setTimeout(() => {
+        const { airQuality, dustLevel, timestamp } = sensorBuffer;
+
+        if (airQuality === null || dustLevel === null) return;
+
+        const status = airQuality < 50 ? 'GOOD' : airQuality < 100 ? 'MODERATE' : 'POLLUTED';
+
+        // IMPROVED: Only update if status has changed OR dust level has changed significantly
+        const dustChanged = lastDustLevel === null || 
+                           Math.abs(dustLevel - lastDustLevel) > 0.0001; // Threshold for dust level change
+        
+        if (status === lastStatus && !dustChanged) return;
+
+        lastStatus = status;
+        lastDustLevel = dustLevel;
+
+        const newEntry = { timestamp, status, dustLevel };
+        saveHistoryEntry(newEntry);
+        renderNewHistoryEntry(newEntry);
+      }, 1000);
+    }
+
+    function updateCircularProgress(value) {
+      const circle = document.getElementById('progressCircle');
+      const text = document.getElementById('progressValue');
+
+      const maxAQ = 500;
+      const percent = Math.min((value / maxAQ) * 360, 360);
+      let color = '';
+
+      if (value < 50) {
+        color = '#2dce89';
+      } else if (value < 100) {
+        color = '#FF8C00';
+      } else {
+        color = '#f5365c';
+      }
+
+      circle.style.background = `conic-gradient(${color} ${percent}deg, #eee ${percent}deg)`;
+      text.textContent = value;
+      text.classList.add('value-updated');
+      setTimeout(() => {
+        text.classList.remove('value-updated');
+      }, 500);
+      
+      // Update statistics
+      if (value < minAQI) {
+        minAQI = value;
+        localStorage.setItem('minAQI', minAQI);
+      }
+      if (value > maxAQI) {
+        maxAQI = value;
+        localStorage.setItem('maxAQI', maxAQI);
+      }
+      
+      // Update the stat elements
+      document.getElementById('minAQI').textContent = Math.round(minAQI);
+      document.getElementById('maxAQI').textContent = Math.round(maxAQI);
+      
+      // Update health recommendations based on AQI
+      updateHealthRecommendations(value);
+    }
+
+    function updateHealthRecommendations(aqi) {
+      const recommendationsList = document.getElementById('recommendationsList');
+      
+      if (aqi < 50) {
+        recommendationsList.innerHTML = `
+          <li>
+            <i class="fas fa-check-circle"></i>
+            <div>
+              <strong>Air quality is good</strong>
+              <p>No health implications. Enjoy outdoor activities.</p>
+            </div>
+          </li>
+          <li>
+            <i class="fas fa-check-circle"></i>
+            <div>
+              <strong>Ventilation</strong>
+              <p>Keep windows open to allow fresh air circulation.</p>
+            </div>
+          </li>
+        `;
+      } else if (aqi < 100) {
+        recommendationsList.innerHTML = `
+          <li>
+            <i class="fas fa-exclamation-triangle"></i>
+            <div>
+              <strong>Moderate air quality</strong>
+              <p>Unusually sensitive people should consider reducing prolonged outdoor exertion.</p>
+            </div>
+          </li>
+          <li>
+            <i class="fas fa-check-circle"></i>
+            <div>
+              <strong>Ventilation</strong>
+              <p>Moderate ventilation is recommended.</p>
+            </div>
+          </li>
+        `;
+      } else {
+        recommendationsList.innerHTML = `
+          <li>
+            <i class="fas fa-skull-crossbones"></i>
+            <div>
+              <strong>Poor air quality</strong>
+              <p>Everyone may begin to experience health effects. Avoid outdoor activities.</p>
+            </div>
+          </li>
+          <li>
+            <i class="fas fa-house-user"></i>
+            <div>
+              <strong>Stay indoors</strong>
+              <p>Keep windows and doors closed. Use air purifiers if available.</p>
+            </div>
+          </li>
+          <li>
+            <i class="fas fa-mask"></i>
+            <div>
+              <strong>Use protection</strong>
+              <p>If going outside is necessary, wear an N95 mask.</p>
+            </div>
+          </li>
+        `;
+      }
+    }
+
+    // Reset stats at midnight
+    function resetDailyStats() {
+      const now = new Date();
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 0);
+      
+      const timeUntilMidnight = tomorrow - now;
+      
+      setTimeout(() => {
+        minAQI = Infinity;
+        maxAQI = -Infinity;
+        localStorage.removeItem('minAQI');
+        localStorage.removeItem('maxAQI');
+        resetDailyStats(); // Schedule next reset
+      }, timeUntilMidnight);
+    }
+
+    // Call this on page load
+    resetDailyStats();
+
+    // Chart initialization
+    const MAX_DATA_POINTS = 20;
+    const airChartCtx = document.getElementById('airChart').getContext('2d');
+    const dustChartCtx = document.getElementById('dustChart').getContext('2d');
+
+    const airData = {
+      labels: [],
+      datasets: [{
+        label: 'Air Quality',
+        data: [],
+        borderColor: '#3b82f6',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        fill: true,
+        tension: 0.4,
+        pointBackgroundColor: '#3b82f6',
+        pointBorderColor: '#fff',
+        pointRadius: 4,
+        pointHoverRadius: 6
+      }]
+    };
+
+    const dustData = {
+      labels: [],
+      datasets: [{
+        label: 'Dust Level (mg/m³)',
+        data: [],
+        borderColor: '#fb6340',
+        backgroundColor: 'rgba(251, 99, 64, 0.1)',
+        fill: true,
+        tension: 0.4,
+        pointBackgroundColor: '#fb6340',
+        pointBorderColor: '#fff',
+        pointRadius: 4,
+        pointHoverRadius: 6
+      }]
+    };
+
+    const chartOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: {
+            color: 'rgba(0, 0, 0, 0.05)'
+          }
+        },
+        x: {
+          grid: {
+            display: false
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          display: false
+        }
+      },
+      interaction: {
+        intersect: false,
+        mode: 'index'
+      },
+      animations: {
+        tension: {
+          duration: 1000,
+          easing: 'linear'
+        }
+      }
+    };
+
+    const airChart = new Chart(airChartCtx, {
+      type: 'line',
+      data: airData,
+      options: {
+        ...chartOptions,
+        scales: {
+          ...chartOptions.scales,
+          y: {
+            ...chartOptions.scales.y,
+            suggestedMax: 500
+          }
+        }
+      }
+    });
+
+    const dustChart = new Chart(dustChartCtx, {
+      type: 'line',
+      data: dustData,
+      options: chartOptions
+    });
+
+    function updateChart(chart, dataset, value) {
+      const timestamp = new Date().toLocaleTimeString();
+      dataset.labels.push(timestamp);
+      dataset.datasets[0].data.push(value);
+
+      if (dataset.labels.length > MAX_DATA_POINTS) {
+        dataset.labels.shift();
+        dataset.datasets[0].data.shift();
+      }
+      chart.update('active');
+    }
+
+    // History functions
+    function saveHistoryEntry(entry) {
+      historyRef.push(entry).catch(err => console.error('Error saving entry:', err));
+    }
+
+    function renderNewHistoryEntry(data) {
+      const { timestamp, status, dustLevel } = data;
+      if (addedEntries.has(timestamp)) return;
+
+      const entryDate = new Date(timestamp);
+      if (!isSameDate(entryDate, todayUTC)) return;
+
+      // Only update if status has changed
+      if (status === lastRenderedStatus) return;
+
+      const tableBody = document.getElementById('historyTableBody');
+      
+      // Remove the placeholder if it exists
+      if (tableBody.innerHTML.includes('Select a date')) {
+        tableBody.innerHTML = '';
+      }
+
+      const row = document.createElement('tr');
+
+      const dateTimeCell = document.createElement('td');
+      dateTimeCell.textContent = formatDateTime(timestamp);
+
+      const statusCell = document.createElement('td');
+      statusCell.textContent = status;
+
+      if (status === 'GOOD') {
+        statusCell.innerHTML = '<i class="fas fa-smile" style="color: #2dce89; margin-right: 8px;"></i> ' + status;
+      } else if (status === 'MODERATE') {
+        statusCell.innerHTML = '<i class="fas fa-meh" style="color: #FF8C00; margin-right: 8px;"></i> ' + status;
+      } else if (status === 'POLLUTED') {
+        statusCell.innerHTML = '<i class="fas fa-frown" style="color: #f5365c; margin-right: 8px;"></i> ' + status;
+      }
+
+      const dustCell = document.createElement('td');
+      dustCell.textContent = parseFloat(dustLevel).toFixed(5);
+
+      row.appendChild(dateTimeCell);
+      row.appendChild(statusCell);
+      row.appendChild(dustCell);
+      tableBody.prepend(row);
+
+      // Ensure we only keep 10 rows
+      if (tableBody.children.length > 10) {
+        tableBody.removeChild(tableBody.lastChild);
+      }
+
+      addedEntries.add(timestamp);
+      lastRenderedStatus = status;
+    }
+
+    // IMPROVED: Better redundant entry filtering
+    function filterRedundantEntries(entries) {
+      if (entries.length === 0) return [];
+      
+      const filtered = [entries[0]]; // Always include the first entry
+      let lastStatus = entries[0].status;
+      
+      for (let i = 1; i < entries.length; i++) {
+        // Only add entry if status has changed
+        if (entries[i].status !== lastStatus) {
+          filtered.push(entries[i]);
+          lastStatus = entries[i].status;
+        }
+      }
+      
+      return filtered;
+    }
+
+    // Pagination functions
+    function changePage(direction) {
+      currentPage += direction;
+      renderHistoryPage();
+    }
+
+    function renderHistoryPage() {
+      const tableBody = document.getElementById('historyTableBody');
+      tableBody.innerHTML = '';
+      
+      const startIndex = (currentPage - 1) * entriesPerPage;
+      const endIndex = Math.min(startIndex + entriesPerPage, filteredHistoryData.length);
+      const pageData = filteredHistoryData.slice(startIndex, endIndex);
+      
+      if (pageData.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">No records found for selected date range.</td></tr>';
+        return;
+      }
+      
+      pageData.forEach(entry => {
+        const row = document.createElement("tr");
+        
+        const dateCell = document.createElement("td");
+        dateCell.textContent = new Date(entry.timestamp).toLocaleString();
+        
+        const statusCell = document.createElement("td");
+        if (entry.status === 'GOOD') {
+          statusCell.innerHTML = '<i class="fas fa-smile" style="color: #2dce89; margin-right: 8px;"></i> ' + entry.status;
+        } else if (entry.status === 'MODERATE') {
+          statusCell.innerHTML = '<i class="fas fa-meh" style="color: #FF8C00; margin-right: 8px;"></i> ' + entry.status;
+        } else if (entry.status === 'POLLUTED') {
+          statusCell.innerHTML = '<i class="fas fa-frown" style="color: #f5365c; margin-right: 8px;"></i> ' + entry.status;
+        } else {
+          statusCell.textContent = entry.status;
+        }
+        
+        const dustCell = document.createElement("td");
+        dustCell.textContent = parseFloat(entry.dustLevel).toFixed(5);
+        
+        row.appendChild(dateCell);
+        row.appendChild(statusCell);
+        row.appendChild(dustCell);
+        tableBody.appendChild(row);
+      });
+      
+      // Update pagination controls
+      const totalPages = Math.ceil(filteredHistoryData.length / entriesPerPage);
+      pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+      
+      prevPageBtn.disabled = currentPage <= 1;
+      nextPageBtn.disabled = currentPage >= totalPages;
+      
+      // Show pagination controls if there's more than one page
+      paginationControls.style.display = totalPages > 1 ? 'flex' : 'none';
+    }
+
+    function fetchHistoryByDate() {
+      const selectedDate = document.getElementById("dateRangePicker").value;
+      const historyBody = document.getElementById("historyTableBody");
+
+      if (!selectedDate) {
+        alert("Please select a date range.");
+        return;
+      }
+
+      const [startDate, endDate] = selectedDate.split(" to ");
+      historyBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">Loading data...</td></tr>';
+
+      historyRef.once("value")
+        .then(snapshot => {
+          const data = snapshot.val();
+          if (!data) {
+            historyBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">No history data available.</td></tr>';
+            return;
+          }
+
+          const start = new Date(startDate);
+          const end = endDate ? new Date(endDate) : new Date(startDate);
+          end.setHours(23, 59, 59, 999); // End of the day
+
+          // Convert to array and sort by timestamp (oldest first)
+          const allEntries = [];
+          Object.entries(data).forEach(([key, entry]) => {
+            if (!entry.timestamp) return;
+            allEntries.push(entry);
+          });
+          
+          allEntries.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+          // Filter by date
+          const dateFilteredEntries = allEntries.filter(entry => {
+            const entryDate = new Date(entry.timestamp);
+            return entryDate >= start && entryDate <= end;
+          });
+
+          // IMPROVED: Apply redundant entry filtering
+          filteredHistoryData = filterRedundantEntries(dateFilteredEntries);
+
+          // Reset pagination
+          currentPage = 1;
+          
+          if (filteredHistoryData.length === 0) {
+            historyBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">No records found for selected date range.</td></tr>';
+            paginationControls.style.display = 'none';
+            return;
+          }
+
+          // Sort by timestamp (newest first for display)
+          filteredHistoryData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+          
+          // Render the first page
+          renderHistoryPage();
+        })
+        .catch(error => {
+          console.error("Error fetching history:", error);
+          historyBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">Error loading data.</td></tr>';
+          paginationControls.style.display = 'none';
+        });
+    }
+
+    function renderHistory() {
+      // Apply pagination to all historical data
+      filteredHistoryData = [...historicalData];
+      
+      // IMPROVED: Apply redundant entry filtering
+      filteredHistoryData = filterRedundantEntries(filteredHistoryData);
+      
+      // Sort by timestamp (newest first)
+      filteredHistoryData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      
+      // Reset pagination
+      currentPage = 1;
+      
+      // Render the first page
+      renderHistoryPage();
+    }
+
+    // Initialize page
+    document.addEventListener("DOMContentLoaded", function() {
+      // Initialize notification sound
+      initializeNotificationSound();
+      
+      // Load initial data
+      renderHistory();
+      
+      // Set up history listener
+      historyRef.orderByChild("timestamp").on('child_added', (snapshot) => {
+        const data = snapshot.val();
+        if (data && data.timestamp && data.status && data.dustLevel !== undefined) {
+          historicalData.push(data);
+          renderNewHistoryEntry(data);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
