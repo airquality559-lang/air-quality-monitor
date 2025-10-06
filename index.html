@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIR QUALITY MONITORING</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --accent: #2ecc71;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --error: #e74c3c;
+            --success: #2ecc71;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: var(--dark);
+            padding: 20px;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .login-container {
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+            transition: var(--transition);
+            transform: translateY(0);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(to right, var(--secondary), var(--accent));
+        }
+
+        .login-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo {
+            margin-bottom: 25px;
+        }
+
+        .logo i {
+            font-size: 50px;
+            color: var(--secondary);
+            background: linear-gradient(135deg, var(--secondary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 15px;
+        }
+
+        .logo h2 {
+            font-weight: 700;
+            font-size: 28px;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .logo p {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            position: relative;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
+            font-size: 14px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 15px 15px 15px 45px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: var(--transition);
+            background-color: #f9f9f9;
+        }
+
+        .input-field:focus {
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+            outline: none;
+            background-color: #fff;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 15px;
+            top: 42px;
+            color: #95a5a6;
+            font-size: 18px;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 15px;
+            top: 42px;
+            cursor: pointer;
+            color: #95a5a6;
+            font-size: 18px;
+            transition: var(--transition);
+        }
+
+        .toggle-password:hover {
+            color: var(--secondary);
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(to right, var(--secondary), var(--accent));
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .message {
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            display: none;
+        }
+
+        .error {
+            background-color: rgba(231, 76, 60, 0.1);
+            color: var(--error);
+            border-left: 4px solid var(--error);
+        }
+
+        .success {
+            background-color: rgba(46, 204, 113, 0.1);
+            color: var(--success);
+            border-left: 4px solid var(--success);
+        }
+
+        .additional-links {
+            margin-top: 25px;
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+
+        .additional-links a {
+            color: var(--secondary);
+            text-decoration: none;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .additional-links a:hover {
+            color: var(--accent);
+            text-decoration: underline;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 450px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+
+        .modal.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #95a5a6;
+            transition: var(--transition);
+        }
+
+        .close-modal:hover {
+            color: var(--error);
+        }
+
+        .modal-title {
+            margin-bottom: 20px;
+            color: var(--primary);
+            font-size: 24px;
+            text-align: center;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 16px;
+            transition: var(--transition);
+        }
+
+        .modal-input:focus {
+            border-color: var(--secondary);
+            outline: none;
+        }
+
+        textarea.modal-input {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .modal-button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(to right, var(--secondary), var(--accent));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .modal-button:hover {
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 30px 20px;
+            }
+            
+            .logo h2 {
+                font-size: 24px;
+            }
+            
+            .input-field {
+                padding: 12px 12px 12px 40px;
+            }
+            
+            .input-icon, .toggle-password {
+                top: 39px;
+            }
+
+            .modal-content {
+                padding: 20px;
+            }
+        }
+
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: float 15s infinite linear;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0) translateX(0) rotate(0deg);
+                opacity: 0.3;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(100vw) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="particles" id="particles"></div>
+    
+    <div class="login-container">
+        <div class="logo">
+            <i class="fas fa-wind"></i>
+            <h2>AIR QUALITY MONITORING</h2>
+            <p>Barangay Central</p>
+        </div>
+
+        <form id="login-form">
+            <div class="input-group">
+                <label for="email">Email Address</label>
+                <i class="fas fa-envelope input-icon"></i>
+                <input type="email" id="email" class="input-field" placeholder="Enter your email" required>
+            </div>
+            
+            <div class="input-group">
+                <label for="password">Password</label>
+                <i class="fas fa-lock input-icon"></i>
+                <input type="password" id="password" class="input-field" placeholder="Enter your password" required>
+                <i class="fas fa-eye toggle-password" id="toggle-password"></i>
+            </div>
+            
+            <button type="submit" id="login-button">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </button>
+            
+            <p id="error-message" class="message error"></p>
+            <p id="success-message" class="message success">Login successful! Redirecting...</p>
+        </form>
+
+        <div class="additional-links">
+            <p><a id="forgot-password-link">Forgot password?</a> | <a id="contact-support-link">Contact support</a></p>
+        </div>
+    </div>
+
+    <!-- Forgot Password Modal -->
+    <div class="modal" id="forgot-password-modal">
+        <div class="modal-content">
+            <span class="close-modal" id="close-forgot">&times;</span>
+            <h2 class="modal-title">Reset Password</h2>
+            <p style="margin-bottom: 20px; color: #7f8c8d;">Enter your email address and we'll send you a password reset link.</p>
+            <input type="email" id="reset-email" class="modal-input" placeholder="Your email address">
+            <button class="modal-button" id="send-reset-button">
+                <i class="fas fa-paper-plane"></i> Send Reset Link
+            </button>
+            <p id="reset-message" class="message" style="margin-top: 15px;"></p>
+        </div>
+    </div>
+
+    <!-- Contact Support Modal -->
+    <div class="modal" id="contact-support-modal">
+        <div class="modal-content">
+            <span class="close-modal" id="close-contact">&times;</span>
+            <h2 class="modal-title">Contact Support</h2>
+            <p style="margin-bottom: 20px; color: #7f8c8d;">Having issues? Send us a message and we'll get back to you soon.</p>
+            <input type="text" id="support-name" class="modal-input" placeholder="Your name">
+            <input type="email" id="support-email" class="modal-input" placeholder="Your email">
+            <textarea id="support-message" class="modal-input" placeholder="Describe your issue"></textarea>
+            <button class="modal-button" id="send-support-button">
+                <i class="fas fa-envelope"></i> Send Message
+            </button>
+            <p id="support-message" class="message" style="margin-top: 15px;"></p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.1/firebase-app.js";
+        import { 
+            getAuth, 
+            signInWithEmailAndPassword, 
+            sendPasswordResetEmail 
+        } from "https://www.gstatic.com/firebasejs/9.1.1/firebase-auth.js";
+
+        const firebaseConfig = {
+  apiKey: "AIzaSyD-q_sjDr815xyKHnw4qupJoFeCa89rsTg",
+  authDomain: "air-quality-monitoring-s-d6123.firebaseapp.com",
+  databaseURL: "https://air-quality-monitoring-s-d6123-default-rtdb.firebaseio.com",
+  projectId: "air-quality-monitoring-s-d6123",
+  storageBucket: "air-quality-monitoring-s-d6123.firebasestorage.app",
+  messagingSenderId: "410958753987",
+  appId: "1:410958753987:web:546a09493fae6d8623f276",
+  measurementId: "G-MQZTPTJXWP"
+};
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Create background particles
+            createParticles();
+            
+            const togglePassword = document.getElementById('toggle-password');
+            const passwordField = document.getElementById('password');
+            const loginForm = document.getElementById('login-form');
+            const errorMessage = document.getElementById('error-message');
+            const successMessage = document.getElementById('success-message');
+            const loginButton = document.getElementById('login-button');
+            
+            // Modal elements
+            const forgotPasswordLink = document.getElementById('forgot-password-link');
+            const contactSupportLink = document.getElementById('contact-support-link');
+            const forgotPasswordModal = document.getElementById('forgot-password-modal');
+            const contactSupportModal = document.getElementById('contact-support-modal');
+            const closeForgot = document.getElementById('close-forgot');
+            const closeContact = document.getElementById('close-contact');
+            const sendResetButton = document.getElementById('send-reset-button');
+            const resetMessage = document.getElementById('reset-message');
+            const sendSupportButton = document.getElementById('send-support-button');
+            const supportMessage = document.getElementById('support-message');
+
+            // Toggle password visibility
+            togglePassword.addEventListener('click', () => {
+                const type = passwordField.type === 'password' ? 'text' : 'password';
+                passwordField.type = type;
+                togglePassword.classList.toggle('fa-eye');
+                togglePassword.classList.toggle('fa-eye-slash');
+            });
+
+            // Open modals
+            forgotPasswordLink.addEventListener('click', () => {
+                forgotPasswordModal.classList.add('active');
+            });
+
+            contactSupportLink.addEventListener('click', () => {
+                contactSupportModal.classList.add('active');
+            });
+
+            // Close modals
+            closeForgot.addEventListener('click', () => {
+                forgotPasswordModal.classList.remove('active');
+                resetMessage.style.display = 'none';
+            });
+
+            closeContact.addEventListener('click', () => {
+                contactSupportModal.classList.remove('active');
+                supportMessage.style.display = 'none';
+            });
+
+            // Close modals when clicking outside
+            window.addEventListener('click', (e) => {
+                if (e.target === forgotPasswordModal) {
+                    forgotPasswordModal.classList.remove('active');
+                    resetMessage.style.display = 'none';
+                }
+                if (e.target === contactSupportModal) {
+                    contactSupportModal.classList.remove('active');
+                    supportMessage.style.display = 'none';
+                }
+            });
+
+            // Send password reset email
+            sendResetButton.addEventListener('click', () => {
+                const email = document.getElementById('reset-email').value.trim();
+                
+                if (!email) {
+                    showMessage(resetMessage, 'Please enter your email address.', 'error');
+                    return;
+                }
+                
+                sendResetButton.disabled = true;
+                sendResetButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+                
+                sendPasswordResetEmail(auth, email)
+                    .then(() => {
+                        showMessage(resetMessage, 'Password reset email sent! Check your inbox.', 'success');
+                        sendResetButton.innerHTML = '<i class="fas fa-paper-plane"></i> Send Reset Link';
+                        
+                        // Clear the input and disable button for a few seconds
+                        document.getElementById('reset-email').value = '';
+                        setTimeout(() => {
+                            sendResetButton.disabled = false;
+                        }, 5000);
+                    })
+                    .catch((error) => {
+                        let errorMsg = 'Failed to send reset email. Please try again.';
+                        if (error.code === 'auth/invalid-email') {
+                            errorMsg = 'Invalid email address format.';
+                        } else if (error.code === 'auth/user-not-found') {
+                            errorMsg = 'No account found with this email.';
+                        }
+                        
+                        showMessage(resetMessage, errorMsg, 'error');
+                        sendResetButton.disabled = false;
+                        sendResetButton.innerHTML = '<i class="fas fa-paper-plane"></i> Send Reset Link';
+                    });
+            });
+
+            // Send support message (simulated)
+            sendSupportButton.addEventListener('click', () => {
+                const name = document.getElementById('support-name').value.trim();
+                const email = document.getElementById('support-email').value.trim();
+                const message = document.getElementById('support-message').value.trim();
+                
+                if (!name || !email || !message) {
+                    showMessage(supportMessage, 'Please fill in all fields.', 'error');
+                    return;
+                }
+                
+                if (!isValidEmail(email)) {
+                    showMessage(supportMessage, 'Please enter a valid email address.', 'error');
+                    return;
+                }
+                
+                sendSupportButton.disabled = true;
+                sendSupportButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+                
+                // Simulate sending message (in a real app, this would connect to a backend)
+                setTimeout(() => {
+                    showMessage(supportMessage, 'Message sent! We will get back to you within 24 hours.', 'success');
+                    sendSupportButton.innerHTML = '<i class="fas fa-envelope"></i> Send Message';
+                    
+                    // Clear the form
+                    document.getElementById('support-name').value = '';
+                    document.getElementById('support-email').value = '';
+                    document.getElementById('support-message').value = '';
+                    
+                    // Re-enable button after a delay
+                    setTimeout(() => {
+                        sendSupportButton.disabled = false;
+                    }, 3000);
+                }, 1500);
+            });
+
+            // Login form submission
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                loginButton.disabled = true;
+                loginButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Authenticating...';
+
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value.trim();
+
+                // Client-side validation
+                if (!email || !password) {
+                    showError('Please fill in all fields.');
+                    loginButton.disabled = false;
+                    loginButton.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+                    return;
+                }
+
+                signInWithEmailAndPassword(auth, email, password)
+                    .then(() => {
+                        showSuccess();
+                        setTimeout(() => {
+                            window.location.href = 'central.html';
+                        }, 2000);
+                    })
+                    .catch((error) => {
+                        let errorMsg = 'Invalid email or password.';
+                        if (error.code === 'auth/invalid-email') {
+                            errorMsg = 'Invalid email address format.';
+                        } else if (error.code === 'auth/user-not-found') {
+                            errorMsg = 'No account found with this email.';
+                        } else if (error.code === 'auth/wrong-password') {
+                            errorMsg = 'Incorrect password.';
+                        }
+                        showError(errorMsg);
+                        loginButton.disabled = false;
+                        loginButton.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+                    });
+            });
+
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorMessage.style.display = 'block';
+                errorMessage.className = 'message error';
+                successMessage.style.display = 'none';
+            }
+
+            function showSuccess() {
+                errorMessage.style.display = 'none';
+                successMessage.style.display = 'block';
+                successMessage.className = 'message success';
+            }
+            
+            function showMessage(element, message, type) {
+                element.textContent = message;
+                element.style.display = 'block';
+                element.className = `message ${type}`;
+            }
+            
+            function isValidEmail(email) {
+                const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return re.test(email);
+            }
+            
+            function createParticles() {
+                const particlesContainer = document.getElementById('particles');
+                const particleCount = 30;
+                
+                for (let i = 0; i < particleCount; i++) {
+                    const particle = document.createElement('div');
+                    particle.classList.add('particle');
+                    
+                    // Random properties for each particle
+                    const size = Math.random() * 15 + 5;
+                    const posX = Math.random() * 100;
+                    const posY = Math.random() * 100;
+                    const animationDelay = Math.random() * 15;
+                    
+                    particle.style.width = `${size}px`;
+                    particle.style.height = `${size}px`;
+                    particle.style.left = `${posX}vw`;
+                    particle.style.top = `${posY}vh`;
+                    particle.style.animationDelay = `${animationDelay}s`;
+                    
+                    particlesContainer.appendChild(particle);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
