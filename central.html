@@ -789,6 +789,7 @@
         padding: 0;
       }
 
+      /* Hide all navigation and interactive elements */
       .sidenav, 
       .btn, 
       .history-controls,
@@ -855,6 +856,12 @@
       /* Hide pagination when printing */
       .pagination {
         display: none !important;
+      }
+      
+      /* Ensure no background colors or images interfere */
+      * {
+        background: white !important;
+        color: black !important;
       }
     }
 
