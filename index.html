@@ -294,7 +294,7 @@
             text-decoration: underline;
         }
 
-        /* Modal styles */
+        /* Modal styles - UPDATED: Changed text color to black */
         .modal {
             display: none;
             position: fixed;
@@ -354,6 +354,7 @@
             text-align: center;
         }
 
+        /* UPDATED: Changed text color to black for modal inputs and labels */
         .modal-input {
             width: 100%;
             padding: 12px 15px;
@@ -362,6 +363,7 @@
             margin-bottom: 15px;
             font-size: 16px;
             transition: var(--transition);
+            color: #000000; /* Changed to black */
         }
 
         .modal-input:focus {
@@ -389,6 +391,15 @@
 
         .modal-button:hover {
             transform: translateY(-2px);
+        }
+
+        /* UPDATED: Changed label text color to black in modal */
+        .modal .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #000000; /* Changed to black */
+            font-size: 14px;
         }
 
         /* Dashboard Styles */
@@ -1896,7 +1907,7 @@
                     </div>
                     <div class="user-info">
                         <div class="user-avatar">A</div>
-                        <span>Admin User</span>
+                        <span>Admin</span>
                     </div>
                 </div>
             </div>
@@ -2341,7 +2352,7 @@
         <div class="modal-content">
             <span class="close-modal" id="close-user">&times;</span>
             <h2 class="modal-title">Register New User</h2>
-            <p style="margin-bottom: 20px; color: #7f8c8d;">Register a new user account. Account requires admin approval.</p>
+            <p style="margin-bottom: 20px; color: #000000;">Register a new user account. Account requires admin approval.</p> <!-- Changed to black -->
             
             <div class="input-group">
                 <label for="user-name">Full Name</label>
@@ -2456,7 +2467,7 @@
         // Initialize default admin account
         initializeDefaultAdmin();
         
-        // Check if user is already logged in
+        // Check login status first - UPDATED: This prevents auto-redirect to login
         checkLoginStatus();
 
         // Initialize particles
@@ -3773,7 +3784,7 @@
         message.style.display = 'block';
     }
 
-    // Check login status and redirect if already logged in
+    // Check login status and redirect if already logged in - UPDATED: This prevents auto-redirect to login
     function checkLoginStatus() {
         const userRole = localStorage.getItem('userRole');
         const userEmail = localStorage.getItem('userEmail');
@@ -3783,10 +3794,8 @@
             // Check if user is still approved
             checkUserApproval(userEmail, userRole);
         } else {
-            // Auto-fill default admin credentials if no user is logged in
-            setTimeout(() => {
-                autoFillDefaultAdmin();
-            }, 1000);
+            // Only show login page if no valid session exists
+            showLoginPage();
         }
     }
 
@@ -3861,17 +3870,50 @@
         console.log(`🔐 Demo login attempt: ${email} as ${role}`);
         
         if (role === 'admin') {
-            // Admin can always login
-            localStorage.setItem('userRole', role);
-            localStorage.setItem('userEmail', email);
-            localStorage.setItem('barangayName', 'Admin');
-            showSuccess();
-            
-            setTimeout(() => {
-                showAdminDashboard();
-            }, 2000);
+            // For admin, check if it's the default admin or approved admin
+            if (email === DEFAULT_ADMIN.email && password === DEFAULT_ADMIN.password) {
+                // Default admin login
+                localStorage.setItem('userRole', role);
+                localStorage.setItem('userEmail', email);
+                localStorage.setItem('barangayName', 'Admin');
+                showSuccess();
+                
+                setTimeout(() => {
+                    showAdminDashboard();
+                }, 2000);
+            } else {
+                // Check if it's an approved admin user
+                database.ref('approvedUsers').orderByChild('email').equalTo(email).once('value')
+                    .then((snapshot) => {
+                        if (snapshot.exists()) {
+                            const userData = Object.values(snapshot.val())[0];
+                            if (userData.role === 'admin') {
+                                // Admin user is approved
+                                localStorage.setItem('userRole', userData.role || role);
+                                localStorage.setItem('userEmail', email);
+                                localStorage.setItem('barangayName', 'Admin');
+                                showSuccess();
+                                
+                                setTimeout(() => {
+                                    showAdminDashboard();
+                                }, 2000);
+                            } else {
+                                showError('Invalid admin credentials.');
+                                resetLoginButton();
+                            }
+                        } else {
+                            showError('Invalid admin credentials.');
+                            resetLoginButton();
+                        }
+                    })
+                    .catch((error) => {
+                        console.error('Error checking admin user:', error);
+                        showError('Login error. Please try again.');
+                        resetLoginButton();
+                    });
+            }
         } else {
-            // Check if user is approved
+            // Check if user is approved for barangay roles
             database.ref('approvedUsers').orderByChild('email').equalTo(email).once('value')
                 .then((snapshot) => {
                     if (snapshot.exists()) {
@@ -3969,6 +4011,21 @@
         setupPendingRequestsListener();
     }
 
+    // Show login page (only when needed)
+    function showLoginPage() {
+        document.getElementById('admin-dashboard').style.display = 'none';
+        document.getElementById('barangay-dashboard').style.display = 'none';
+        document.getElementById('login-page').style.display = 'flex';
+        
+        // Clear login form
+        document.getElementById('login-form').reset();
+        resetLoginButton();
+        
+        // Clear success message when showing login page
+        document.getElementById('success-message').style.display = 'none';
+        document.getElementById('error-message').style.display = 'none';
+    }
+
     // Logout function
     function logout() {
         localStorage.removeItem('userRole');
@@ -3980,7 +4037,6 @@
 
     // ==================== UI HELPER FUNCTIONS ====================
 
-    // Setup modals
     function setupModals() {
         // Add User Modal
         document.getElementById('add-user-link').addEventListener('click', () => {
@@ -4007,7 +4063,6 @@
         });
     }
 
-    // Setup dashboard
     function setupDashboard() {
         // Only set up listeners once
         if (listenersInitialized) return;
@@ -4059,7 +4114,6 @@
         });
     }
 
-    // Setup navigation
     function setupNavigation() {
         // Admin navigation
         document.querySelectorAll('#admin-dashboard .menu-item').forEach(item => {
@@ -4792,17 +4846,6 @@
             const text = row.textContent.toLowerCase();
             row.style.display = text.includes(searchLower) ? '' : 'none';
         });
-    }
-
-    function showLoginPage() {
-        document.getElementById('admin-dashboard').style.display = 'none';
-        document.getElementById('barangay-dashboard').style.display = 'none';
-        document.getElementById('login-page').style.display = 'flex';
-        // Clear login form
-        document.getElementById('login-form').reset();
-        resetLoginButton();
-        // Clear success message when showing login page
-        document.getElementById('success-message').style.display = 'none';
     }
 
     function resetLoginButton() {
