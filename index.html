@@ -2427,10 +2427,10 @@
     const itemsPerPage = 10;
     let listenersInitialized = false;
 
-    // Default Admin Account
+    // Default Admin Account - UPDATED: Changed email to admin@gmail.com, kept password
     const DEFAULT_ADMIN = {
-        email: "admin@airquality.com",
-        password: "Admin123!",
+        email: "admin@gmail.com", // CHANGED: from "admin@airquality.com" to "admin@gmail.com"
+        password: "Admin123!", // UNCHANGED: password remains the same
         name: "System Administrator"
     };
 
@@ -2464,7 +2464,7 @@
     let maxAQI = 0;
 
     document.addEventListener('DOMContentLoaded', function() {
-        // Initialize default admin account
+        // Initialize default admin account - REMOVED: auto-fill functionality
         initializeDefaultAdmin();
         
         // Check login status first - UPDATED: This prevents auto-redirect to login
@@ -3761,27 +3761,10 @@
 
     // ==================== AUTHENTICATION & USER MANAGEMENT ====================
 
-    // Initialize default admin account
+    // Initialize default admin account - REMOVED: auto-fill functionality
     function initializeDefaultAdmin() {
         console.log("🔐 Initializing default admin account...");
-        
-        // Auto-fill credentials for convenience
-        setTimeout(() => {
-            autoFillDefaultAdmin();
-        }, 1000);
-    }
-
-    // Auto-fill login form with default admin credentials
-    function autoFillDefaultAdmin() {
-        document.getElementById('email').value = DEFAULT_ADMIN.email;
-        document.getElementById('password').value = DEFAULT_ADMIN.password;
-        document.getElementById('role').value = 'admin';
-        
-        // Show helpful message
-        const message = document.getElementById('error-message');
-        message.textContent = 'Default admin credentials loaded. Click Login to continue.';
-        message.className = 'message success';
-        message.style.display = 'block';
+        // REMOVED: Auto-fill functionality that was here
     }
 
     // Check login status and redirect if already logged in - UPDATED: This prevents auto-redirect to login
