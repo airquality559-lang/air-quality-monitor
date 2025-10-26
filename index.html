@@ -1784,6 +1784,27 @@
                 gap: 15px;
             }
         }
+
+        /* NEW: Barangay Details Modal Text Color Fix */
+        #barangay-details {
+            color: #000000 !important;
+        }
+
+        #barangay-details h3 {
+            color: #000000 !important;
+        }
+
+        #barangay-details p {
+            color: #000000 !important;
+        }
+
+        #barangay-details strong {
+            color: #000000 !important;
+        }
+
+        #barangay-details span {
+            color: #000000 !important;
+        }
     </style>
 </head>
 <body>
@@ -1833,7 +1854,7 @@
             </form>
 
             <div class="additional-links">
-                <p><a id="add-user-link">Add User</a> | <a id="contact-support-link">Contact support</a></p>
+                <p><a id="add-user-link">Register New User</a> | <a id="contact-support-link">Contact support</a></p>
             </div>
         </div>
     </div>
@@ -1956,7 +1977,7 @@
                         </div>
                     </div>
 
-                    <!-- Charts Section - MODIFIED -->
+                    <!-- Charts Section -->
                     <div class="charts-container">
                         <!-- Central Air Quality Index Trend -->
                         <div class="chart-card">
@@ -2030,9 +2051,9 @@
                                 <i class="fas fa-search"></i>
                                 <input type="text" id="search-approved-users" placeholder="Search users...">
                             </div>
-                        <button id="add-new-user-btn" style="padding: 8px 15px; background: var(--accent); color: white; border: none; border-radius: 5px; cursor: pointer;">
-                            <i class="fas fa-plus"></i> Add New User
-                        </button>
+                            <button id="add-new-user-btn" style="padding: 8px 15px; background: var(--accent); color: white; border: none; border-radius: 5px; cursor: pointer;">
+                                <i class="fas fa-plus"></i> Add New User
+                            </button>
                         </div>
                         <div id="approved-users-table-container">
                             <div class="loading">
@@ -2352,7 +2373,7 @@
         <div class="modal-content">
             <span class="close-modal" id="close-user">&times;</span>
             <h2 class="modal-title">Register New User</h2>
-            <p style="margin-bottom: 20px; color: #000000;">Register a new user account. Account requires admin approval.</p> <!-- Changed to black -->
+            <p style="margin-bottom: 20px; color: #000000;">Register a new user account. Account requires admin approval.</p>
             
             <div class="input-group">
                 <label for="user-name">Full Name</label>
@@ -2378,7 +2399,6 @@
                 <label for="user-role">User Role</label>
                 <select id="user-role" class="modal-input" required>
                     <option value="" disabled selected>Select user role</option>
-                    <option value="barangay">Barangay User</option>
                     <option value="casidman">Casidman</option>
                     <option value="central">Central</option>
                 </select>
@@ -2427,10 +2447,10 @@
     const itemsPerPage = 10;
     let listenersInitialized = false;
 
-    // Default Admin Account - UPDATED: Changed email to admin@gmail.com, kept password
+    // Default Admin Account
     const DEFAULT_ADMIN = {
-        email: "admin@gmail.com", // CHANGED: from "admin@airquality.com" to "admin@gmail.com"
-        password: "Admin123!", // UNCHANGED: password remains the same
+        email: "admin@gmail.com",
+        password: "Admin123!",
         name: "System Administrator"
     };
 
@@ -2464,10 +2484,10 @@
     let maxAQI = 0;
 
     document.addEventListener('DOMContentLoaded', function() {
-        // Initialize default admin account - REMOVED: auto-fill functionality
+        // Initialize default admin account
         initializeDefaultAdmin();
         
-        // Check login status first - UPDATED: This prevents auto-redirect to login
+        // Check login status first
         checkLoginStatus();
 
         // Initialize particles
@@ -2899,6 +2919,252 @@
                 loadPendingUsers();
             }
         });
+    }
+
+    // ==================== NOTIFICATION SYSTEM ====================
+
+    // Setup notification system
+    function setupNotificationSystem() {
+        const notificationIcon = document.getElementById('notification-icon');
+        const notificationPanel = document.getElementById('notification-panel');
+        const markAllReadBtn = document.getElementById('mark-all-read');
+        
+        // Toggle notification panel
+        notificationIcon.addEventListener('click', function(e) {
+            e.stopPropagation();
+            notificationPanel.style.display = notificationPanel.style.display === 'block' ? 'none' : 'block';
+            loadNotifications();
+        });
+        
+        // Mark all notifications as read
+        markAllReadBtn.addEventListener('click', function() {
+            markAllNotificationsAsRead();
+        });
+        
+        // Close notification panel when clicking outside
+        document.addEventListener('click', function() {
+            notificationPanel.style.display = 'none';
+        });
+        
+        // Prevent closing when clicking inside the panel
+        notificationPanel.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+        
+        // Listen for new pending users and create notifications
+        database.ref('pendingUsers').on('child_added', (snapshot) => {
+            const userData = snapshot.val();
+            createNotification('New User Registration', 
+                `${userData.name} (${userData.email}) has requested access as ${userData.role}.`, 
+                'user_request',
+                snapshot.key);
+        });
+    }
+
+    // Create a new notification
+    function createNotification(title, message, type, referenceId) {
+        const notificationId = Date.now().toString();
+        const notificationData = {
+            title: title,
+            message: message,
+            type: type,
+            referenceId: referenceId,
+            timestamp: new Date().toISOString(),
+            read: false
+        };
+        
+        database.ref('notifications/' + notificationId).set(notificationData)
+            .then(() => {
+                console.log('Notification created:', notificationData);
+                updateNotificationBadge();
+            })
+            .catch((error) => {
+                console.error('Error creating notification:', error);
+            });
+    }
+
+    // Load notifications
+    function loadNotifications() {
+        const notificationList = document.getElementById('notification-list');
+        notificationList.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+        
+        database.ref('notifications').orderByChild('timestamp').once('value')
+            .then((snapshot) => {
+                const notifications = snapshot.val();
+                
+                if (!notifications || Object.keys(notifications).length === 0) {
+                    notificationList.innerHTML = `
+                        <div class="notification-empty">
+                            <i class="fas fa-bell-slash"></i>
+                            <p>No notifications</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                let notificationsHTML = '';
+                const notificationsArray = Object.entries(notifications)
+                    .map(([id, notification]) => ({ id, ...notification }))
+                    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                
+                notificationsArray.forEach(notification => {
+                    const timeAgo = getTimeAgo(notification.timestamp);
+                    const unreadClass = notification.read ? '' : 'unread';
+                    
+                    notificationsHTML += `
+                        <div class="notification-item ${unreadClass}" data-id="${notification.id}" data-type="${notification.type}" data-reference="${notification.referenceId}">
+                            <div class="notification-title">${notification.title}</div>
+                            <div class="notification-message">${notification.message}</div>
+                            <div class="notification-time">${timeAgo}</div>
+                            ${notification.type === 'user_request' ? `
+                                <div class="notification-actions">
+                                    <button class="notification-btn btn-approve" data-id="${notification.referenceId}">Approve</button>
+                                    <button class="notification-btn btn-reject" data-id="${notification.referenceId}">Reject</button>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                });
+                
+                notificationList.innerHTML = notificationsHTML;
+                
+                // Add event listeners to notification items
+                document.querySelectorAll('.notification-item').forEach(item => {
+                    item.addEventListener('click', function() {
+                        const notificationId = this.getAttribute('data-id');
+                        const type = this.getAttribute('data-type');
+                        const referenceId = this.getAttribute('data-reference');
+                        
+                        // Mark as read
+                        markNotificationAsRead(notificationId);
+                        
+                        // Handle click based on type
+                        if (type === 'user_request') {
+                            // Navigate to users section
+                            document.querySelectorAll('#admin-dashboard .menu-item').forEach(i => {
+                                i.classList.remove('active');
+                            });
+                            document.querySelector('[data-section="users"]').classList.add('active');
+                            
+                            document.querySelectorAll('#admin-dashboard .content > div').forEach(div => {
+                                div.classList.remove('active');
+                                div.style.display = 'none';
+                            });
+                            
+                            const usersSection = document.getElementById('users-section');
+                            usersSection.classList.add('active');
+                            usersSection.style.display = 'block';
+                            
+                            document.querySelector('#admin-dashboard .header-left h1').textContent = 'Users';
+                            
+                            // Load user data
+                            loadUserData();
+                            
+                            // Close notification panel
+                            document.getElementById('notification-panel').style.display = 'none';
+                        }
+                    });
+                });
+                
+                // Add event listeners for approve/reject buttons in notifications
+                document.querySelectorAll('.notification-actions .btn-approve').forEach(button => {
+                    button.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const userId = this.getAttribute('data-id');
+                        approveUser(userId);
+                    });
+                });
+                
+                document.querySelectorAll('.notification-actions .btn-reject').forEach(button => {
+                    button.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const userId = this.getAttribute('data-id');
+                        rejectUser(userId);
+                    });
+                });
+            })
+            .catch((error) => {
+                console.error('Error loading notifications:', error);
+                notificationList.innerHTML = `
+                    <div class="notification-empty">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Error loading notifications</p>
+                    </div>
+                `;
+            });
+    }
+
+    // Mark notification as read
+    function markNotificationAsRead(notificationId) {
+        database.ref('notifications/' + notificationId + '/read').set(true)
+            .then(() => {
+                console.log('Notification marked as read:', notificationId);
+                updateNotificationBadge();
+            })
+            .catch((error) => {
+                console.error('Error marking notification as read:', error);
+            });
+    }
+
+    // Mark all notifications as read
+    function markAllNotificationsAsRead() {
+        database.ref('notifications').once('value')
+            .then((snapshot) => {
+                const notifications = snapshot.val();
+                if (!notifications) return;
+                
+                const updates = {};
+                Object.keys(notifications).forEach(id => {
+                    updates['notifications/' + id + '/read'] = true;
+                });
+                
+                return database.ref().update(updates);
+            })
+            .then(() => {
+                console.log('All notifications marked as read');
+                updateNotificationBadge();
+                loadNotifications();
+            })
+            .catch((error) => {
+                console.error('Error marking all notifications as read:', error);
+            });
+    }
+
+    // Update notification badge count
+    function updateNotificationBadge() {
+        database.ref('notifications').orderByChild('read').equalTo(false).once('value')
+            .then((snapshot) => {
+                const unreadNotifications = snapshot.val();
+                const count = unreadNotifications ? Object.keys(unreadNotifications).length : 0;
+                
+                const badge = document.getElementById('notification-badge');
+                if (count > 0) {
+                    badge.textContent = count;
+                    badge.style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+            })
+            .catch((error) => {
+                console.error('Error updating notification badge:', error);
+            });
+    }
+
+    // Helper function to get time ago
+    function getTimeAgo(timestamp) {
+        const now = new Date();
+        const past = new Date(timestamp);
+        const diffInSeconds = Math.floor((now - past) / 1000);
+        
+        if (diffInSeconds < 60) {
+            return 'Just now';
+        } else if (diffInSeconds < 3600) {
+            return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+        } else if (diffInSeconds < 86400) {
+            return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+        } else {
+            return `${Math.floor(diffInSeconds / 86400)} days ago`;
+        }
     }
 
     // ==================== FIREBASE DATA FUNCTIONS ====================
@@ -3761,13 +4027,38 @@
 
     // ==================== AUTHENTICATION & USER MANAGEMENT ====================
 
-    // Initialize default admin account - REMOVED: auto-fill functionality
+    // Initialize default admin account
     function initializeDefaultAdmin() {
         console.log("🔐 Initializing default admin account...");
-        // REMOVED: Auto-fill functionality that was here
+        // Check if default admin exists, create if not
+        auth.fetchSignInMethodsForEmail(DEFAULT_ADMIN.email)
+            .then((signInMethods) => {
+                if (signInMethods.length === 0) {
+                    // Create default admin account
+                    return auth.createUserWithEmailAndPassword(DEFAULT_ADMIN.email, DEFAULT_ADMIN.password);
+                }
+            })
+            .then((userCredential) => {
+                if (userCredential) {
+                    // Store admin data in Firebase
+                    return database.ref('approvedUsers/' + userCredential.user.uid).set({
+                        name: DEFAULT_ADMIN.name,
+                        email: DEFAULT_ADMIN.email,
+                        role: 'admin',
+                        approvedAt: new Date().toISOString(),
+                        approvedBy: 'system'
+                    });
+                }
+            })
+            .then(() => {
+                console.log("✅ Default admin account initialized");
+            })
+            .catch((error) => {
+                console.error("❌ Error initializing default admin:", error);
+            });
     }
 
-    // Check login status and redirect if already logged in - UPDATED: This prevents auto-redirect to login
+    // Check login status and redirect if already logged in
     function checkLoginStatus() {
         const userRole = localStorage.getItem('userRole');
         const userEmail = localStorage.getItem('userEmail');
@@ -3992,6 +4283,12 @@
         
         // Setup real-time listener for pending requests
         setupPendingRequestsListener();
+        
+        // Setup notification system
+        setupNotificationSystem();
+        
+        // Update notification badge
+        updateNotificationBadge();
     }
 
     // Show login page (only when needed)
@@ -4485,18 +4782,18 @@
         
         document.getElementById('barangay-details').innerHTML = `
             <div style="padding: 20px;">
-                <h3 style="margin-bottom: 15px; color: var(--primary);">Barangay Information</h3>
+                <h3 style="margin-bottom: 15px; color: #000000;">Barangay Information</h3>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
                     <div>
-                        <p><strong>Barangay Name:</strong> ${barangay.name || barangay.barangayName || 'Unknown'}</p>
-                        <p><strong>Municipality:</strong> ${barangay.city || barangay.municipality || 'Unknown'}</p>
-                        <p><strong>Admin Email:</strong> ${barangay.gmail || barangay.email || 'No email'}</p>
+                        <p><strong style="color: #000000;">Barangay Name:</strong> <span style="color: #000000;">${barangay.name || barangay.barangayName || 'Unknown'}</span></p>
+                        <p><strong style="color: #000000;">Municipality:</strong> <span style="color: #000000;">${barangay.city || barangay.municipality || 'Unknown'}</span></p>
+                        <p><strong style="color: #000000;">Admin Email:</strong> <span style="color: #000000;">${barangay.gmail || barangay.email || 'No email'}</span></p>
                     </div>
                     <div>
-                        <p><strong>Date ${status === 'approved' ? 'Approved' : 'Registered'}:</strong> ${date}</p>
-                        <p><strong>Status:</strong> <span class="status status-${status}">${status === 'approved' ? 'Approved' : 'Pending'}</span></p>
-                        ${barangay.adminName ? `<p><strong>Admin Name:</strong> ${barangay.adminName}</p>` : ''}
-                        ${barangay.adminPhone ? `<p><strong>Contact Number:</strong> ${barangay.adminPhone}</p>` : ''}
+                        <p><strong style="color: #000000;">Date ${status === 'approved' ? 'Approved' : 'Registered'}:</strong> <span style="color: #000000;">${date}</span></p>
+                        <p><strong style="color: #000000;">Status:</strong> <span class="status status-${status}">${status === 'approved' ? 'Approved' : 'Pending'}</span></p>
+                        ${barangay.adminName ? `<p><strong style="color: #000000;">Admin Name:</strong> <span style="color: #000000;">${barangay.adminName}</span></p>` : ''}
+                        ${barangay.adminPhone ? `<p><strong style="color: #000000;">Contact Number:</strong> <span style="color: #000000;">${barangay.adminPhone}</span></p>` : ''}
                     </div>
                 </div>
             </div>
