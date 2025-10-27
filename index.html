@@ -294,7 +294,7 @@
             text-decoration: underline;
         }
 
-        /* Modal styles - UPDATED: Changed text color to black */
+        /* Modal styles */
         .modal {
             display: none;
             position: fixed;
@@ -354,7 +354,6 @@
             text-align: center;
         }
 
-        /* UPDATED: Changed text color to black for modal inputs and labels */
         .modal-input {
             width: 100%;
             padding: 12px 15px;
@@ -363,7 +362,7 @@
             margin-bottom: 15px;
             font-size: 16px;
             transition: var(--transition);
-            color: #000000; /* Changed to black */
+            color: #000000;
         }
 
         .modal-input:focus {
@@ -393,12 +392,11 @@
             transform: translateY(-2px);
         }
 
-        /* UPDATED: Changed label text color to black in modal */
         .modal .input-group label {
             display: block;
             margin-bottom: 8px;
             font-weight: 500;
-            color: #000000; /* Changed to black */
+            color: #000000;
             font-size: 14px;
         }
 
@@ -2487,7 +2485,7 @@
         // Initialize default admin account
         initializeDefaultAdmin();
         
-        // Check login status first
+        // Check login status first - MODIFIED: Always show login page first
         checkLoginStatus();
 
         // Initialize particles
@@ -4058,18 +4056,19 @@
             });
     }
 
-    // Check login status and redirect if already logged in
+    // Check login status and redirect if already logged in - MODIFIED: Always show login page first
     function checkLoginStatus() {
+        // Always show login page first, don't auto-login
+        showLoginPage();
+        
+        // Optional: You can still check for existing session but not auto-login
         const userRole = localStorage.getItem('userRole');
         const userEmail = localStorage.getItem('userEmail');
         
         if (userEmail && userRole) {
-            console.log('👤 User is already logged in as:', userRole);
-            // Check if user is still approved
-            checkUserApproval(userEmail, userRole);
-        } else {
-            // Only show login page if no valid session exists
-            showLoginPage();
+            console.log('👤 User session exists for:', userRole);
+            console.log('ℹ️  User must login manually');
+            // Don't auto-login, just show the login page
         }
     }
 
@@ -4291,7 +4290,7 @@
         updateNotificationBadge();
     }
 
-    // Show login page (only when needed)
+    // Show login page (always when needed)
     function showLoginPage() {
         document.getElementById('admin-dashboard').style.display = 'none';
         document.getElementById('barangay-dashboard').style.display = 'none';
@@ -5238,6 +5237,6 @@
     window.debugFirebase = debugFirebaseConnection;
     window.createTestData = createTestData;
     window.initializeFirebaseDataStructure = initializeFirebaseDataStructure;
-</script>
+    </script>
 </body>
 </html>
